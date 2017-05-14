@@ -1,6 +1,7 @@
 package com.nocoolweather.android;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 import com.nocoolweather.android.db.City;
 import com.nocoolweather.android.db.County;
 import com.nocoolweather.android.db.Province;
+import com.nocoolweather.android.gson.Weather;
 import com.nocoolweather.android.util.HttpUtil;
 import com.nocoolweather.android.util.Utility;
 
@@ -44,7 +46,7 @@ public class ChooseAreaFragment extends Fragment {
     private ArrayAdapter<String> adapter;
     private List<String> dataList = new ArrayList<>();
 
-    private List<Province>provinceList;
+    private List<Province> provinceList;
 
     private List<City> cityList;
 
@@ -81,6 +83,12 @@ public class ChooseAreaFragment extends Fragment {
                 } else if (currentLevel == LEVEL_CITY) {
                     selectedCity = cityList.get(position);
                     queryCounties();
+                } else if (currentLevel == LEVEL_COUNTY) {
+                    String weatherId = countyList.get(position).getWeatherId();
+                    Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                    intent.putExtra("weather_id", weatherId);
+                    startActivity(intent);
+                    getActivity().finish();
                 }
             }
         });
@@ -122,7 +130,7 @@ public class ChooseAreaFragment extends Fragment {
     private void queryCities() {
         titleText.setText(selectedProvince.getProvinceName());
         backButton.setVisibility(View.VISIBLE);
-        cityList = DataSupport.where("provinceid = ?", String.valueOf(selectedProvince
+        cityList = DataSupport.where("provinceid= ?", String.valueOf(selectedProvince
                 .getId())).find(City.class);
         if (cityList.size() > 0) {
             dataList.clear();
@@ -183,7 +191,6 @@ public class ChooseAreaFragment extends Fragment {
                     result = Utility.handleCityResponse(reponseText, selectedProvince.getId());
 
                 } else if ("county".equals(type)) {
-                    result = Utility.handleCountyResponse(reponseText, selectedCity.getId());
                     result = Utility.handleCountyResponse(reponseText, selectedCity.getId());
                 }
                 if (result) {
